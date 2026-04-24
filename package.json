@@ -1,0 +1,21 @@
+{
+  "name": "ci-cd-pipeline",
+  "version": "1.0.0",
+  "private": true,
+  "description": "TypeScript Node.js Express app with a health route",
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsx watch src/index.ts",
+    "start": "node dist/index.js"
+  },
+  "dependencies": {
+    "express": "^4.21.2"
+  },
+  "devDependencies": {
+    "@types/express": "^5.0.1",
+    "@types/node": "^22.15.2",
+    "tsx": "^4.19.3",
+    "typescript": "^5.8.3"
+  }
+}
