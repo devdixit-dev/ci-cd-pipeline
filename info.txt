@@ -1,0 +1,95 @@
+Continous Integration, Continous Delivery (CI-CD)
+
+1. Setup scripts
+2. Setup PM2 on Server
+3. Generate SSH key
+  - ssh-keygen -t ed25519 -C "github-actions"
+4. Add public key to server
+  - cat ~/.ssh/id_ed25519.pub
+  paste into
+  - ~/.ssh/authorized_keys
+5. Copy your private key
+  - cat ~/.ssh/id_ed25519
+  - copy all things from start to end
+6. Add secrets to Github
+  - SSH_PRIVATE_KEY = (your private key)
+  - SERVER_IP = your-ip
+  - SERVER_USER = your-username
+7. Make deploy.yml in .github/workflows/deploy.yml
+  - .github/workflows/deploy.yml
+8. deploy.yml
+  name: CI/CD Pipeline
+
+    on:
+      push:
+        branches:
+          - main
+
+    jobs:
+      build-and-deploy:
+        runs-on: ubuntu-latest
+
+        steps:
+          # 1. Checkout code
+          - name: Checkout repository
+            uses: actions/checkout@v4
+
+          # 2. Setup Node
+          - name: Setup Node.js
+            uses: actions/setup-node@v4
+            with:
+              node-version: 20
+
+          # 3. Install dependencies
+          - name: Install dependencies
+            run: npm ci
+
+          # 4. Run lint (optional but recommended)
+          - name: Lint code
+            run: npm run lint
+
+          # 5. Run tests
+          - name: Run tests
+            run: npm test
+
+          # 6. Build project
+          - name: Build project
+            run: npm run build
+
+          # 7. Deploy via SSH
+          - name: Deploy to Ubuntu Server
+            uses: appleboy/ssh-action@v1.0.3
+            with:
+              host: ${{ secrets.SERVER_IP }}
+              username: ${{ secrets.SERVER_USER }}
+              key: ${{ secrets.SSH_PRIVATE_KEY }}
+              script: |
+                set -e
+
+                # Navigate to project directory
+                cd /home/your-user/backend-project
+
+                # Pull latest code
+                git pull origin main
+
+                # Install dependencies
+                npm ci
+
+                # Build project
+                npm run build
+
+                # Restart app safely
+                pm2 restart backend-app || pm2 start dist/server.js --name backend-app
+
+                pm2 save
+9. First time server setup
+  git clone https://github.com/your-username/your-repo.git
+  cd your-repo
+  npm install
+  npm run build
+  pm2 start dist/server.js --name backend-app
+
+
+Advance info
+1. Zero downtime deploy
+  - pm2 reload backend-app
